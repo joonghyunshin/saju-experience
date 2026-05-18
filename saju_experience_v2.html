@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 사주팔자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --ink2: #3d2e10;
+    --ink3: #6b5230;
+    --paper: #f5efe0;
+    --paper2: #ede4cc;
+    --paper3: #e0d4b0;
+    --gold: #c8922a;
+    --gold2: #e8b84b;
+    --red: #8b1a1a;
+    --blue: #1a3a5c;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Serif KR', serif;
+    background: var(--ink);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, #2a1a08 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #0a1a2a 0%, transparent 50%),
+      linear-gradient(135deg, #0d0a04 0%, #1a1208 50%, #0a0d1a 100%);
+    overflow-x: hidden;
+  }
+
+  /* 배경 문양 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(200,146,42,0.06) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(200,146,42,0.06) 60px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 720px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ──── 화면 공통 ──── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.6s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ──── 헤더 장식 ──── */
+  .header-deco {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .header-deco .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .header-deco .diamond {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* ──── 인트로 화면 ──── */
+  #screen-intro {
+    padding: 60px 20px 40px;
+    text-align: center;
+    gap: 0;
+  }
+
+  .intro-emblem {
+    font-size: 72px;
+    line-height: 1;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 20px rgba(200,146,42,0.5));
+  }
+
+  .intro-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--gold2);
+    letter-spacing: 8px;
+    text-shadow: 0 0 30px rgba(200,146,42,0.4);
+    margin-bottom: 8px;
+  }
+
+  .intro-subtitle {
+    font-size: 14px;
+    color: rgba(200,146,42,0.7);
+    letter-spacing: 4px;
+    margin-bottom: 40px;
+  }
+
+  .intro-desc {
+    background: rgba(200,146,42,0.08);
+    border: 1px solid rgba(200,146,42,0.2);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    margin-bottom: 40px;
+    max-width: 460px;
+  }
+  .intro-desc p {
+    font-size: 15px;
+    color: rgba(245,239,224,0.85);
+    line-height: 1.9;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--gold) 100%);
+    color: var(--ink);
+    border: none;
+    border-radius: 40px;
+    padding: 18px 56px;
+    font-family: 'Gowun Batang', serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(200,146,42,0.4);
+  }
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(200,146,42,0.6);
+  }
+  .btn-start:active { transform: translateY(0); }
+
+  /* ──── 입력 화면 ──── */
+  #screen-input {
+    padding: 40px 20px;
+    gap: 0;
+    width: 100%;
+  }
+
+  .section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 22px;
+    color: var(--gold2);
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .section-hint {
+    font-size: 12px;
+    color: rgba(200,146,42,0.6);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .form-card {
+    background: rgba(245,239,224,0.04);
+    border: 1px solid rgba(200,146,42,0.2);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .form-row:last-child { margin-bottom: 0; }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .form-label {
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    font-weight: 600;
+  }
+
+  .form-input {
+    background: rgba(245,239,224,0.06);
+    border: 1px solid rgba(200,146,42,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--paper);
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px;
+    width: 100%;
+    transition: border-color 0.3s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: rgba(200,146,42,0.08);
+  }
+  .form-input::placeholder { color: rgba(200,146,42,0.3); }
+  .form-input option { background: #1a1208; color: var(--paper); }
+
+  /* 오행 선택 */
+  .concern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .concern-btn {
+    background: rgba(245,239,224,0.04);
+    border: 1px solid rgba(200,146,42,0.2);
+    border-radius: 8px;
+    padding: 12px 8px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+  }
+  .concern-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .concern-btn .label {
+    font-size: 13px;
+    color: rgba(245,239,224,0.7);
+    letter-spacing: 1px;
+    font-family: 'Noto Serif KR', serif;
+  }
+  .concern-btn.selected {
+    background: rgba(200,146,42,0.15);
+    border-color: var(--gold);
+  }
+  .concern-btn.selected .label { color: var(--gold2); }
+
+  .btn-analyze {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--gold) 100%);
+    color: var(--ink);
+    border: none;
+    border-radius: 40px;
+    padding: 18px;
+    font-family: 'Gowun Batang', serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(200,146,42,0.4);
+  }
+  .btn-analyze:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(200,146,42,0.6);
+  }
+  .btn-analyze:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ──── 로딩 화면 ──── */
+  #screen-loading {
+    padding: 80px 20px;
+    text-align: center;
+    gap: 28px;
+  }
+
+  .loading-symbol {
+    font-size: 64px;
+    animation: spin 4s linear infinite;
+    filter: drop-shadow(0 0 20px rgba(200,146,42,0.6));
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .loading-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 20px;
+    color: var(--gold2);
+    letter-spacing: 4px;
+  }
+  .loading-steps { display: flex; flex-direction: column; gap: 10px; }
+  .loading-step {
+    font-size: 13px;
+    color: rgba(200,146,42,0.5);
+    letter-spacing: 2px;
+    transition: color 0.5s;
+  }
+  .loading-step.active { color: var(--gold2); }
+
+  /* ──── 결과 화면 ──── */
+  #screen-result {
+    padding: 32px 20px 60px;
+    gap: 0;
+    width: 100%;
+  }
+
+  /* 사주팔자 8글자 판 */
+  .saju-board {
+    background: rgba(200,146,42,0.06);
+    border: 1px solid rgba(200,146,42,0.3);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    width: 100%;
+    margin: 20px 0;
+  }
+  .saju-board-title {
+    font-size: 11px;
+    color: rgba(200,146,42,0.6);
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .saju-chars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .saju-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .saju-col-label {
+    font-size: 10px;
+    color: rgba(200,146,42,0.5);
+    letter-spacing: 1px;
+  }
+  .saju-char {
+    background: rgba(245,239,224,0.06);
+    border: 1px solid rgba(200,146,42,0.25);
+    border-radius: 8px;
+    width: 54px; height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Gowun Batang', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold2);
+  }
+  .saju-char.heavenly { color: var(--gold2); }
+  .saju-char.earthly { color: #a8c8e8; }
+  .saju-char-sub {
+    font-size: 11px;
+    color: rgba(245,239,224,0.4);
+    letter-spacing: 1px;
+  }
+
+  /* 결과 카드들 */
+  .result-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    margin: 4px 0 20px;
+  }
+
+  .result-card {
+    background: rgba(245,239,224,0.04);
+    border: 1px solid rgba(200,146,42,0.18);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    width: 100%;
+  }
+  .result-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .result-card-icon { font-size: 20px; }
+  .result-card-title {
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    font-weight: 600;
+  }
+  .result-card-body {
+    font-size: 15px;
+    color: rgba(245,239,224,0.88);
+    line-height: 1.9;
+    white-space: pre-wrap;
+  }
+
+  /* 키워드 배지 */
+  .keyword-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .keyword-badge {
+    background: rgba(200,146,42,0.12);
+    border: 1px solid rgba(200,146,42,0.35);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 14px;
+    color: var(--gold2);
+    letter-spacing: 2px;
+    font-family: 'Gowun Batang', serif;
+  }
+
+  /* 메시지 카드 (강조) */
+  .message-card {
+    background: linear-gradient(135deg, rgba(200,146,42,0.12) 0%, rgba(200,146,42,0.06) 100%);
+    border: 1px solid rgba(200,146,42,0.35);
+    border-radius: var(--radius);
+    padding: 24px 22px;
+    width: 100%;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .message-card-label {
+    font-size: 11px;
+    color: rgba(200,146,42,0.6);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+  .message-card-text {
+    font-family: 'Gowun Batang', serif;
+    font-size: 17px;
+    color: var(--paper);
+    line-height: 2;
+    white-space: pre-wrap;
+  }
+
+  .btn-retry {
+    background: transparent;
+    border: 1px solid rgba(200,146,42,0.4);
+    border-radius: 40px;
+    padding: 14px 40px;
+    color: var(--gold);
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+  }
+  .btn-retry:hover {
+    background: rgba(200,146,42,0.1);
+    border-color: var(--gold2);
+    color: var(--gold2);
+  }
+
+  /* API 키 설정 */
+  .api-setup {
+    background: rgba(139,26,26,0.12);
+    border: 1px solid rgba(139,26,26,0.35);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .api-setup-title {
+    font-size: 12px;
+    color: #e88a8a;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .api-setup input {
+    width: 100%;
+    background: rgba(245,239,224,0.06);
+    border: 1px solid rgba(200,146,42,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--paper);
+    font-family: monospace;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .api-setup input:focus { outline: none; border-color: var(--gold); }
+  .api-setup button {
+    background: rgba(200,146,42,0.15);
+    border: 1px solid rgba(200,146,42,0.35);
+    border-radius: 6px;
+    padding: 8px 20px;
+    color: var(--gold);
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    color: rgba(200,146,42,0.3);
+    letter-spacing: 2px;
+    text-align: center;
+    padding-top: 40px;
+  }
+
+  /* 이름 표시 */
+  .user-name-display {
+    font-family: 'Gowun Batang', serif;
+    font-size: 28px;
+    color: var(--gold2);
+    letter-spacing: 8px;
+    text-align: center;
+    margin: 10px 0 4px;
+    text-shadow: 0 0 20px rgba(200,146,42,0.4);
+  }
+  .user-birth-display {
+    font-size: 13px;
+    color: rgba(200,146,42,0.6);
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  /* 오행 분포 */
+  .ohaeng-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .ohaeng-pill {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    border: 1px solid transparent;
+  }
+  .ohaeng-pill.wood  { background: rgba(34,100,34,0.15); border-color: rgba(34,100,34,0.4); color: #7bc87b; }
+  .ohaeng-pill.fire  { background: rgba(180,30,30,0.15); border-color: rgba(180,30,30,0.4); color: #e88a8a; }
+  .ohaeng-pill.earth { background: rgba(160,120,40,0.15); border-color: rgba(160,120,40,0.4); color: var(--gold2); }
+  .ohaeng-pill.metal { background: rgba(180,180,200,0.1); border-color: rgba(180,180,200,0.3); color: #c8cce0; }
+  .ohaeng-pill.water { background: rgba(20,80,160,0.15); border-color: rgba(20,80,160,0.4); color: #a8c8e8; }
+
+  select.form-input { cursor: pointer; }
+
+  @media (max-width: 480px) {
+    .intro-title { font-size: 32px; }
+    .concern-grid { grid-template-columns: repeat(2, 1fr); }
+    .saju-char { width: 46px; height: 46px; font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ──── 인트로 화면 ──── -->
+  <div class="screen active" id="screen-intro">
+    <div class="intro-emblem">☯</div>
+    <div class="intro-title">사주팔자</div>
+    <div class="intro-subtitle">AI 천명 분석</div>
+
+    <div class="header-deco" style="width:100%;max-width:320px;margin-bottom:28px;">
+      <div class="line"></div><div class="diamond"></div><div class="line"></div>
+    </div>
+
+    <div class="intro-desc">
+      <p>태어난 날과 시간에는<br>
+      하늘이 새긴 운명의 코드가 있습니다.<br><br>
+      AI가 당신의 사주팔자를 풀어<br>
+      삶의 흐름을 읽어드립니다.</p>
+    </div>
+
+    <!-- API 키 설정 -->
+    <div class="api-setup" id="api-setup-box" style="max-width:460px;">
+      <div class="api-setup-title">⚙ OPENAI API KEY 설정</div>
+      <input type="password" id="api-key-input" placeholder="sk-..." />
+      <button onclick="saveApiKey()">저장하고 시작하기</button>
+    </div>
+
+    <button class="btn-start" id="btn-start" onclick="goToInput()" style="display:none;">
+      운명을 펼쳐보다
+    </button>
+
+    <div class="footer-text" style="padding-top:24px;">AI 소셜링 · AI 사주팔자 체험</div>
+  </div>
+
+  <!-- ──── 입력 화면 ──── -->
+  <div class="screen" id="screen-input">
+    <div class="section-title">생년월일시 입력</div>
+    <div class="section-hint">정확할수록 더 깊은 풀이가 나옵니다</div>
+
+    <div class="form-card" style="width:100%;">
+      <!-- 이름 -->
+      <div class="form-group" style="margin-bottom:20px;">
+        <div class="form-label">이름 (성함)</div>
+        <input class="form-input" type="text" id="input-name" placeholder="홍길동" maxlength="10">
+      </div>
+
+      <!-- 생년월일 -->
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">출생연도</div>
+          <input class="form-input" type="number" id="input-year" placeholder="1975" min="1920" max="2010" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <div class="form-label">월</div>
+          <select class="form-input" id="input-month">
+            <option value="">월</option>
+            <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+            <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+            <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">일</div>
+          <input class="form-input" type="number" id="input-day" placeholder="15" min="1" max="31">
+        </div>
+      </div>
+
+      <!-- 태어난 시간 -->
+      <div class="form-group" style="margin-bottom:20px;">
+        <div class="form-label">태어난 시간 (시주)</div>
+        <select class="form-input" id="input-hour">
+          <option value="">모름 / 선택</option>
+          <option value="자시(23~01시)">🌑 자시 (23:00~01:00)</option>
+          <option value="축시(01~03시)">🌒 축시 (01:00~03:00)</option>
+          <option value="인시(03~05시)">🌓 인시 (03:00~05:00)</option>
+          <option value="묘시(05~07시)">🌤 묘시 (05:00~07:00)</option>
+          <option value="진시(07~09시)">🌅 진시 (07:00~09:00)</option>
+          <option value="사시(09~11시)">☀️ 사시 (09:00~11:00)</option>
+          <option value="오시(11~13시)">🌞 오시 (11:00~13:00)</option>
+          <option value="미시(13~15시)">🌻 미시 (13:00~15:00)</option>
+          <option value="신시(15~17시)">🍂 신시 (15:00~17:00)</option>
+          <option value="유시(17~19시)">🌆 유시 (17:00~19:00)</option>
+          <option value="술시(19~21시)">🌙 술시 (19:00~21:00)</option>
+          <option value="해시(21~23시)">🌜 해시 (21:00~23:00)</option>
+        </select>
+      </div>
+
+      <!-- 성별 -->
+      <div class="form-group" style="margin-bottom:20px;">
+        <div class="form-label">성별</div>
+        <select class="form-input" id="input-gender">
+          <option value="남성">남성 (양)</option>
+          <option value="여성">여성 (음)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 주요 관심사 -->
+    <div class="form-card" style="width:100%;">
+      <div class="form-label" style="margin-bottom:12px;">지금 가장 궁금한 것은? (선택)</div>
+      <div class="concern-grid" id="concern-grid">
+        <button class="concern-btn" data-value="건강과 수명"><span class="icon">🌿</span><span class="label">건강·수명</span></button>
+        <button class="concern-btn" data-value="재물과 사업"><span class="icon">💰</span><span class="label">재물·사업</span></button>
+        <button class="concern-btn" data-value="인연과 결혼"><span class="icon">🌸</span><span class="label">인연·결혼</span></button>
+        <button class="concern-btn" data-value="자녀와 가족"><span class="icon">🏡</span><span class="label">자녀·가족</span></button>
+        <button class="concern-btn" data-value="직업과 명예"><span class="icon">⭐</span><span class="label">직업·명예</span></button>
+        <button class="concern-btn" data-value="전체적인 운세"><span class="icon">☯</span><span class="label">전체 운세</span></button>
+      </div>
+    </div>
+
+    <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()">
+      사주팔자 풀기
+    </button>
+
+    <div class="footer-text">AI 소셜링 · AI 사주팔자 체험</div>
+  </div>
+
+  <!-- ──── 로딩 화면 ──── -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-symbol">☯</div>
+    <div class="loading-title">천명을 읽는 중</div>
+    <div class="loading-steps">
+      <div class="loading-step active" id="step1">✦ 사주팔자 8글자 산출 중...</div>
+      <div class="loading-step" id="step2">✦ 오행 균형 분석 중...</div>
+      <div class="loading-step" id="step3">✦ 용신과 기신 판별 중...</div>
+      <div class="loading-step" id="step4">✦ 올해 대운 및 세운 해석 중...</div>
+      <div class="loading-step" id="step5">✦ 천명 메시지 작성 중...</div>
+    </div>
+  </div>
+
+  <!-- ──── 결과 화면 ──── -->
+  <div class="screen" id="screen-result">
+    <div class="header-deco" style="width:100%;margin-top:16px;">
+      <div class="line"></div><div class="diamond"></div><div class="diamond" style="margin:0 2px;"></div><div class="diamond"></div><div class="line"></div>
+    </div>
+
+    <div class="user-name-display" id="result-name">홍길동</div>
+    <div class="user-birth-display" id="result-birth">1975년 3월 15일 · 남성</div>
+
+    <!-- 사주팔자 8글자 판 -->
+    <div class="saju-board">
+      <div class="saju-board-title">사 주 팔 자 ( 四 柱 八 字 )</div>
+      <div class="saju-chars" id="saju-chars">
+        <!-- JS로 채움 -->
+      </div>
+    </div>
+
+    <!-- 오행 분포 -->
+    <div class="ohaeng-row" id="ohaeng-row" style="width:100%;margin-bottom:20px;"></div>
+
+    <!-- 결과 카드들 -->
+    <div class="result-cards" id="result-cards">
+      <!-- JS로 채움 -->
+    </div>
+
+    <!-- 천명 메시지 -->
+    <div class="message-card" id="message-card">
+      <div class="message-card-label">✦ 천명 메시지 ✦</div>
+      <div class="message-card-text" id="message-text"></div>
+    </div>
+
+    <!-- 다시하기 -->
+    <button class="btn-retry" onclick="goToInput()">다른 사주 보기</button>
+
+    <div class="footer-text">AI 소셜링 · AI 사주팔자 체험<br>본 결과는 참고용이며 실제 운명과 다를 수 있습니다</div>
+  </div>
+
+</div>
+
+<script>
+let API_KEY = sessionStorage.getItem('gemini_api_key') || '';
+let selectedConcern = '';
+
+// 초기 상태
+window.onload = () => {
+  if (API_KEY) {
+    document.getElementById('api-setup-box').style.display = 'none';
+    document.getElementById('btn-start').style.display = 'inline-block';
+  }
+  document.querySelectorAll('.concern-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.concern-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedConcern = btn.dataset.value;
+    });
+  });
+  // 기본 선택
+  const defaultBtn = document.querySelector('.concern-btn[data-value="전체적인 운세"]');
+  if (defaultBtn) { defaultBtn.click(); }
+};
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-')) { alert('올바른 OpenAI API 키를 입력해주세요 (sk-로 시작)'); return; }
+  API_KEY = key;
+  sessionStorage.setItem('gemini_api_key', key);
+  document.getElementById('api-setup-box').style.display = 'none';
+  document.getElementById('btn-start').style.display = 'inline-block';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goToInput() { showScreen('screen-input'); }
+
+function startAnalysis() {
+  const name = document.getElementById('input-name').value.trim();
+  const year = document.getElementById('input-year').value;
+  const month = document.getElementById('input-month').value;
+  const day = document.getElementById('input-day').value;
+  const hour = document.getElementById('input-hour').value;
+  const gender = document.getElementById('input-gender').value;
+
+  if (!name) { alert('이름을 입력해주세요'); return; }
+  if (!year || !month || !day) { alert('생년월일을 입력해주세요'); return; }
+  if (year < 1920 || year > 2010) { alert('출생연도를 다시 확인해주세요'); return; }
+
+  showScreen('screen-loading');
+  animateLoadingSteps();
+  callGeminiAPI(name, year, month, day, hour, gender, selectedConcern);
+}
+
+function animateLoadingSteps() {
+  const steps = ['step1','step2','step3','step4','step5'];
+  steps.forEach((s, i) => {
+    document.getElementById(s).classList.remove('active');
+    setTimeout(() => document.getElementById(s).classList.add('active'), i * 900);
+  });
+}
+
+async function callGeminiAPI(name, year, month, day, hour, gender, concern) {
+  const hourText = hour || '시간 미상';
+  const prompt = `당신은 정통 사주명리학 전문가입니다. 다음 정보로 사주팔자를 풀이해주세요.
+
+이름: ${name}
+생년월일: ${year}년 ${month}월 ${day}일
+태어난 시간: ${hourText}
+성별: ${gender}
+주요 관심사: ${concern}
+
+아래 JSON 형식으로만 답하세요. 다른 텍스트나 마크다운 없이 순수 JSON만 반환하세요:
+
+{
+  "saju": {
+    "year_cheon": "갑",
+    "year_ji": "자",
+    "month_cheon": "경",
+    "month_ji": "인",
+    "day_cheon": "병",
+    "day_ji": "오",
+    "hour_cheon": "무",
+    "hour_ji": "술"
+  },
+  "ohaeng": ["목 강함", "화 보통", "토 약함"],
+  "keywords": ["개척자", "열정", "창의력"],
+  "ilgan_desc": "일간(日干) ${name}님의 본성: 2~3문장으로 핵심 기질 설명",
+  "yongsin": "용신과 기신: 어떤 기운이 도움이 되고 피해야 할지 2문장",
+  "today_fortune": "올해(${new Date().getFullYear()}년) 운세: 3~4문장으로 현실적이고 구체적으로",
+  "concern_fortune": "${concern}에 대한 풀이: 3~4문장으로 따뜻하고 희망적으로",
+  "message": "이 사주팔자를 가진 ${name}님에게 전하는 천명 메시지: 시적이고 감성적으로 4~5문장. 삶의 방향과 위로가 담긴 깊은 메시지"
+}
+
+사주팔자 8글자는 실제 명리학 기준으로 계산해주세요. 천간은 갑을병정무기경신임계 중 하나, 지지는 자축인묘진사오미신유술해 중 하나를 사용하세요. 시간이 모를 경우 적절히 추정하세요.`;
+
+  try {
+    const res = await fetch(
+      `https://api.openai.com/v1/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.8,
+          max_tokens: 1200,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      }
+    );
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    let raw = data.choices[0].message.content;
+    raw = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+    renderResult(name, year, month, day, gender, result);
+  } catch (err) {
+    console.error(err);
+    alert('오류가 발생했어요: ' + err.message);
+    showScreen('screen-input');
+  }
+}
+
+function renderResult(name, year, month, day, gender, r) {
+  // 이름/생년월일 표시
+  document.getElementById('result-name').textContent = name;
+  document.getElementById('result-birth').textContent =
+    `${year}년 ${month}월 ${day}일 · ${gender}`;
+
+  // 사주팔자 8글자
+  const sajuEl = document.getElementById('saju-chars');
+  const cols = [
+    { label: '연주(年柱)', cheon: r.saju.year_cheon, ji: r.saju.year_ji },
+    { label: '월주(月柱)', cheon: r.saju.month_cheon, ji: r.saju.month_ji },
+    { label: '일주(日柱)', cheon: r.saju.day_cheon, ji: r.saju.day_ji },
+    { label: '시주(時柱)', cheon: r.saju.hour_cheon, ji: r.saju.hour_ji },
+  ];
+  sajuEl.innerHTML = cols.map(c => `
+    <div class="saju-col">
+      <div class="saju-char heavenly">${c.cheon}</div>
+      <div class="saju-char-sub">천간</div>
+      <div class="saju-char earthly">${c.ji}</div>
+      <div class="saju-char-sub">지지</div>
+      <div class="saju-col-label" style="font-size:9px;color:rgba(200,146,42,0.4);margin-top:2px;">${c.label}</div>
+    </div>
+  `).join('');
+
+  // 오행
+  const ohaengEl = document.getElementById('ohaeng-row');
+  const ohaengMap = { '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water' };
+  ohaengEl.innerHTML = (r.ohaeng || []).map(o => {
+    const key = Object.keys(ohaengMap).find(k => o.includes(k)) || '토';
+    return `<div class="ohaeng-pill ${ohaengMap[key]}">${o}</div>`;
+  }).join('');
+
+  // 결과 카드
+  const cardsEl = document.getElementById('result-cards');
+  const cards = [
+    { icon: '🔥', title: '일간 · 타고난 본성', body: r.ilgan_desc },
+    { icon: '⚖️', title: '용신 · 삶의 균형', body: r.yongsin },
+    { icon: '📅', title: `${new Date().getFullYear()}년 운세`, body: r.today_fortune },
+    { icon: '🔮', title: `${selectedConcern} 풀이`, body: r.concern_fortune },
+  ];
+  cardsEl.innerHTML = cards.map(c => `
+    <div class="result-card">
+      <div class="result-card-header">
+        <span class="result-card-icon">${c.icon}</span>
+        <span class="result-card-title">${c.title}</span>
+      </div>
+      <div class="result-card-body">${c.body || ''}</div>
+    </div>
+  `).join('');
+
+  // 키워드
+  if (r.keywords && r.keywords.length) {
+    const kwCard = document.createElement('div');
+    kwCard.className = 'result-card';
+    kwCard.innerHTML = `
+      <div class="result-card-header">
+        <span class="result-card-icon">✨</span>
+        <span class="result-card-title">나를 나타내는 키워드</span>
+      </div>
+      <div class="keyword-row">
+        ${r.keywords.map(k => `<div class="keyword-badge">${k}</div>`).join('')}
+      </div>
+    `;
+    cardsEl.appendChild(kwCard);
+  }
+
+  // 천명 메시지
+  document.getElementById('message-text').textContent = r.message || '';
+
+  showScreen('screen-result');
+}
+</script>
+</body>
+</html>
