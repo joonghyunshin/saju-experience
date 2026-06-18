@@ -811,37 +811,53 @@ function animateLoadingSteps() {
 
 async function callGeminiAPI(name, year, month, day, hour, calendar, gender, concern) {
   const hourText = hour || '시간 미상';
-  const prompt = `당신은 정통 사주명리학 전문가입니다. 다음 정보로 사주팔자를 풀이해주세요.
+  const currentYear = new Date().getFullYear();
+  const prompt = `당신은 수십 년 경력의 정통 사주명리학 전문가입니다.
+아래 사람의 사주팔자를 실제 명리학 이론에 근거하여 풀이해주세요.
 
-이름: ${name}
-생년월일: ${year}년 ${month}월 ${day}일 (${calendar})
-태어난 시간: ${hourText}
-성별: ${gender}
-주요 관심사: ${concern}
+【입력 정보】
+- 이름: ${name}
+- 생년월일: ${year}년 ${month}월 ${day}일 (${calendar})
+- 태어난 시간: ${hourText}
+- 성별: ${gender}
+- 주요 관심사: ${concern}
 
-아래 JSON 형식으로만 답하세요. 다른 텍스트나 마크다운 없이 순수 JSON만 반환하세요:
+【사주 계산 규칙】
+1. 천간은 반드시 갑/을/병/정/무/기/경/신/임/계 중 하나
+2. 지지는 반드시 자/축/인/묘/진/사/오/미/신/유/술/해 중 하나
+3. ${calendar} 기준 실제 사주명리학 만세력으로 계산
+4. 시간 미상일 경우 생년월일 기운에 맞게 적절히 추정
+5. 절대로 예시나 템플릿을 그대로 쓰지 말고, 이 사람만의 고유한 사주로 계산할 것
+
+【풀이 규칙】
+- ilgan_desc: ${name}님의 일간 오행과 음양을 명시하고, 이 사람만의 구체적인 기질과 성격을 2~3문장으로 서술. 추상적 단어 금지, 실제 삶의 모습으로 묘사
+- yongsin: 이 사주의 오행 균형 상태를 분석하고, 구체적으로 어떤 오행이 용신/기신인지와 실생활에서 어떻게 적용할지 2문장
+- today_fortune: ${currentYear}년 세운과 대운을 고려한 현실적 운세. 구체적 시기(상반기/하반기)와 분야(직업/관계/건강 등)를 언급하여 3~4문장
+- concern_fortune: [${concern}] 분야에 대해 이 사주 고유의 특성을 반영한 구체적 풀이 3~4문장. 희망적이되 현실적으로
+- keywords: 이 사주팔자에서 도출된 이 사람만의 핵심 키워드 3개. 흔한 단어(열정/도전/성실 등) 사용 금지, 사주 특성에서 나온 독창적 단어로
+- message: ${name}님의 사주팔자 전체 흐름을 담은 천명 메시지. 시적이고 감성적으로 4~5문장. 이 사람의 사주 특성(일간/오행/용신)이 녹아들어야 하며, 매번 다른 은유와 표현 사용
+
+순수 JSON만 반환. 마크다운/백틱/설명 절대 금지:
 
 {
   "saju": {
-    "year_cheon": "갑",
-    "year_ji": "자",
-    "month_cheon": "경",
-    "month_ji": "인",
-    "day_cheon": "병",
-    "day_ji": "오",
-    "hour_cheon": "무",
-    "hour_ji": "술"
+    "year_cheon": "실제계산값",
+    "year_ji": "실제계산값",
+    "month_cheon": "실제계산값",
+    "month_ji": "실제계산값",
+    "day_cheon": "실제계산값",
+    "day_ji": "실제계산값",
+    "hour_cheon": "실제계산값",
+    "hour_ji": "실제계산값"
   },
-  "ohaeng": ["목 강함", "화 보통", "토 약함"],
-  "keywords": ["개척자", "열정", "창의력"],
-  "ilgan_desc": "일간(日干) ${name}님의 본성: 2~3문장으로 핵심 기질 설명",
-  "yongsin": "용신과 기신: 어떤 기운이 도움이 되고 피해야 할지 2문장",
-  "today_fortune": "올해(${new Date().getFullYear()}년) 운세: 3~4문장으로 현실적이고 구체적으로",
-  "concern_fortune": "${concern}에 대한 풀이: 3~4문장으로 따뜻하고 희망적으로",
-  "message": "이 사주팔자를 가진 ${name}님에게 전하는 천명 메시지: 시적이고 감성적으로 4~5문장. 삶의 방향과 위로가 담긴 깊은 메시지"
-}
-
-사주팔자 8글자는 실제 명리학 기준으로 계산해주세요. 천간은 갑을병정무기경신임계 중 하나, 지지는 자축인묘진사오미신유술해 중 하나를 사용하세요. 시간이 모를 경우 적절히 추정하세요.`;
+  "ohaeng": [],
+  "keywords": ["이사람만의키워드1", "키워드2", "키워드3"],
+  "ilgan_desc": "이 사람만의 구체적 기질 서술",
+  "yongsin": "용신/기신 및 실생활 적용",
+  "today_fortune": "${currentYear}년 구체적 운세",
+  "concern_fortune": "${concern} 분야 풀이",
+  "message": "이 사람만의 천명 메시지"
+}`;
 
   try {
     const res = await fetch(
@@ -854,8 +870,8 @@ async function callGeminiAPI(name, year, month, day, hour, calendar, gender, con
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
-          temperature: 0.8,
-          max_tokens: 1200,
+          temperature: 1.0,
+          max_tokens: 1500,
           messages: [{ role: 'user', content: prompt }]
         })
       }
@@ -898,12 +914,28 @@ function renderResult(name, year, month, day, calendar, gender, r) {
     </div>
   `).join('');
 
-  // 오행
+  // 오행 — 천간/지지 매핑 테이블로 직접 계산
+  const CHEON_OHAENG = { 갑:'목', 을:'목', 병:'화', 정:'화', 무:'토', 기:'토', 경:'금', 신:'금', 임:'수', 계:'수' };
+  const JI_OHAENG    = { 자:'수', 축:'토', 인:'목', 묘:'목', 진:'토', 사:'화', 오:'화', 미:'토', 신:'금', 유:'금', 술:'토', 해:'수' };
+  const OHAENG_CSS   = { 목:'wood', 화:'fire', 토:'earth', 금:'metal', 수:'water' };
+  const OHAENG_LABEL = { 목:'木 목', 화:'火 화', 토:'土 토', 금:'金 금', 수:'水 수' };
+
+  const count = { 목:0, 화:0, 토:0, 금:0, 수:0 };
+  const glyphs = [
+    r.saju.year_cheon, r.saju.month_cheon, r.saju.day_cheon, r.saju.hour_cheon,
+    r.saju.year_ji,    r.saju.month_ji,    r.saju.day_ji,    r.saju.hour_ji
+  ];
+  glyphs.forEach(g => {
+    const oh = CHEON_OHAENG[g] || JI_OHAENG[g];
+    if (oh) count[oh]++;
+  });
+
   const ohaengEl = document.getElementById('ohaeng-row');
-  const ohaengMap = { '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water' };
-  ohaengEl.innerHTML = (r.ohaeng || []).map(o => {
-    const key = Object.keys(ohaengMap).find(k => o.includes(k)) || '토';
-    return `<div class="ohaeng-pill ${ohaengMap[key]}">${o}</div>`;
+  ohaengEl.innerHTML = Object.entries(count).map(([oh, cnt]) => {
+    const css = OHAENG_CSS[oh];
+    const label = OHAENG_LABEL[oh];
+    const bar = '●'.repeat(cnt) + '○'.repeat(Math.max(0, 3 - cnt));
+    return `<div class="ohaeng-pill ${css}">${label} <span style="font-size:10px;opacity:0.7;">${bar} ${cnt}</span></div>`;
   }).join('');
 
   // 결과 카드
